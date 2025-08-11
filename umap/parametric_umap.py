@@ -521,6 +521,7 @@ class ParametricUMAP(UMAP):
         sample_mode="uniform",
         landmark_loss_weight=0.01,
         idx=None,
+        reset_optimizer=True,
     ):
         """Add some points from a dataset X as "landmarks."
 
@@ -534,11 +535,14 @@ class ParametricUMAP(UMAP):
             Method for sampling points. Allows "uniform" and "predefined."
         landmark_loss_weight : float, optional
             Multiplier for landmark loss function.
+        reset_optimizer : bool, optional
+            Whether to reset optimizer to default state. Can prevent gradient issues when re-training.
 
         """
         self.sample_pct = sample_pct
         self.sample_mode = sample_mode
         self.landmark_loss_weight = landmark_loss_weight
+        self.parametric_model.landmark_loss_weight = landmark_loss_weight
 
         if self.sample_mode == "uniform":
             self.prev_epoch_idx = list(
@@ -560,6 +564,14 @@ class ParametricUMAP(UMAP):
             raise ValueError(
                 "Choice of sample_mode is not supported."
             )
+
+        # Adding landmarks causes a sharp discontinuity in the loss function.
+        # This can raise issues with the internal momentum of the optimizer.
+        # It is good practice to re-initialise the optimizer when adding landmarks.
+        #
+        if reset_optimizer:
+            self.optimizer = keras.optimizers.Adam(1e-3, clipvalue=4.0)
+            self.parametric_model.compile(optimizer=optimizer)
 
     def remove_landmarks(self):
         self.prev_epoch_X = None
@@ -1002,13 +1014,13 @@ def load_ParametricUMAP(save_location, verbose=True):
         if verbose:
             print("Keras encoder model loaded from {}".format(encoder_output))
 
-    # save decoder
+    # load decoder
     decoder_output = os.path.join(save_location, "decoder.keras")
     if os.path.exists(decoder_output):
         model.decoder = keras.models.load_model(decoder_output)
         print("Keras decoder model loaded from {}".format(decoder_output))
 
-    # save parametric_model
+    # load parametric_model
     parametric_model_output = os.path.join(save_location, "parametric_model")
     if os.path.exists(parametric_model_output):
         model.parametric_model = keras.models.load_model(parametric_model_output)
