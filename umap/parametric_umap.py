@@ -12,14 +12,16 @@ try:
     # Used for tf.data.
     import tensorflow as tf
 except ImportError:
-    warn("""The umap.parametric_umap package requires Tensorflow > 2.0 to be installed.
+    warn(
+        """The umap.parametric_umap package requires Tensorflow > 2.0 to be installed.
     You can install Tensorflow at https://www.tensorflow.org/install
     
     or you can install the CPU version of Tensorflow using 
 
     pip install umap-learn[parametric_umap]
 
-    """)
+    """
+    )
     raise ImportError("umap.parametric_umap requires Tensorflow >= 2.0") from None
 
 try:
@@ -179,8 +181,7 @@ class ParametricUMAP(UMAP):
             nan_array = np.empty(self.n_components)
             nan_array.fill(np.nan)
             landmark_positions = np.stack(
-                [nan_array] * X.shape[0]
-                + list(self.transform(self.prev_epoch_X))
+                [nan_array] * X.shape[0] + list(self.transform(self.prev_epoch_X))
             )
             X = np.concatenate((X, self.prev_epoch_X))
 
@@ -188,13 +189,17 @@ class ParametricUMAP(UMAP):
             len_X = len(X)
             len_land = len(landmark_positions)
             if len_X != len_land:
-                raise ValueError(f"Length of x = {len_X}, length of landmark_positions \
-                    = {len_land}, while it must be equal.")
+                raise ValueError(
+                    f"Length of x = {len_X}, length of landmark_positions \
+                    = {len_land}, while it must be equal."
+                )
 
         if self.metric == "precomputed":
             if precomputed_distances is None:
-                raise ValueError("Precomputed distances must be supplied if metric \
-                    is precomputed.")
+                raise ValueError(
+                    "Precomputed distances must be supplied if metric \
+                    is precomputed."
+                )
             # prepare X for training the network
             self._X = X
             # geneate the graph on precomputed distances
@@ -240,8 +245,7 @@ class ParametricUMAP(UMAP):
             nan_array = np.empty(self.n_components)
             nan_array.fill(np.nan)
             landmark_positions = np.stack(
-                [nan_array] * X.shape[0]
-                + list(self.transform(self.prev_epoch_X))
+                [nan_array] * X.shape[0] + list(self.transform(self.prev_epoch_X))
             )
             X = np.concatenate((X, self.prev_epoch_X))
 
@@ -249,13 +253,17 @@ class ParametricUMAP(UMAP):
             len_X = len(X)
             len_land = len(landmark_positions)
             if len_X != len_land:
-                raise ValueError(f"Length of x = {len_X}, length of landmark_positions \
-                    = {len_land}, while it must be equal.")
+                raise ValueError(
+                    f"Length of x = {len_X}, length of landmark_positions \
+                    = {len_land}, while it must be equal."
+                )
 
         if self.metric == "precomputed":
             if precomputed_distances is None:
-                raise ValueError("Precomputed distances must be supplied if metric \
-                    is precomputed.")
+                raise ValueError(
+                    "Precomputed distances must be supplied if metric \
+                    is precomputed."
+                )
             # prepare X for training the network
             self._X = X
             # generate the graph on precomputed distances
@@ -701,9 +709,9 @@ def init_embedding_from_graph(
 
 
 def _distance(x, y):
-    # The epsilon keeps the gradient finite where x == y. 
+    # The epsilon keeps the gradient finite where x == y.
     # A bare norm has a 0/0 gradient at zero distance.
-    # Keras 3 enables XLA by default when GPU is present, 
+    # Keras 3 enables XLA by default when GPU is present,
     # and XLA returns 0/0 gradient as NaN rather than 0.
     return ops.sqrt(ops.sum((x - y) ** 2, axis=1) + 1e-12)
 
